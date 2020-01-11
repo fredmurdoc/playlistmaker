@@ -8,11 +8,13 @@ import (
 	"net/http"
 )
 
-var apiKey string = "ISMYSECRET"
+var apiKey string = "4ce571ae066f563e18a5da1048545658"
 
 const (
 	lastfmAPIEndpoint          = "http://ws.audioscrobbler.com/2.0/?"
 	lastfmAPITrackSearchMethod = "method=track.search&track=%s&api_key=%s&format=json"
+	lastfmAPIAlbumSearchMethod = "method=album.search&album=%s&api_key=%s&format=json"
+	lastfmAPIAlbumInfoMethod   = "method=album.getinfo&api_key=%s&artist=%s&album=%s&format=json"
 )
 
 // TrackMetaData struct of metadata from track
@@ -25,6 +27,8 @@ type TrackMetaData struct {
 	artist           string
 	genre            string
 }
+
+/**
 type lastfmImage struct {
 	Text string `json:"#text"`
 	size string
@@ -57,9 +61,9 @@ type lastfmTrackSearchResultItem struct {
 type lastfmTrackSearchResponse struct {
 	results lastfmTrackSearchResultItem
 }
-
-// GetMetadataFromMedia retrieve metadata from api
-func GetMetadataFromMedia(track string) (metadata TrackMetaData) {
+*/
+// GetTrackMetadataFromMedia retrieve metadata from api
+func GetTrackMetadataFromMedia(track string) (metadata TrackMetaData) {
 	url := fmt.Sprintf(lastfmAPIEndpoint+lastfmAPITrackSearchMethod, track, apiKey)
 	response, err := http.Get(url)
 	if err != nil {
@@ -79,10 +83,52 @@ func GetMetadataFromMedia(track string) (metadata TrackMetaData) {
 	}
 	results := result["results"].(map[string]interface{})
 	trackmatches := results["trackmatches"].(map[string]interface{})
-	trackObj := trackmatches["track"].([]interface{})
-	fmt.Printf("%#v", trackObj)
+	tracksObj := trackmatches["track"].([]interface{})
+	for indexTrack, trackObj := range tracksObj {
+		//myTrack := new(TrackMetaData)
+		trackMap := trackObj.(map[string]interface{})
+		fmt.Printf("INDEX %d \n", indexTrack)
+		fmt.Printf("%#v \n", trackMap)
+
+		fmt.Println("--------------")
+	}
 
 	//fmt.Println("opensearchItemsPerPage " + jsonObj.results.OpensearchQuery.Text)
 	//fmt.Printf("%#v", jsonObj.results)
+	return
+}
+
+// GetAlbumMetadataFromMedia retrieve metadata from api
+func GetAlbumMetadataFromMedia(albumName string) (metadata TrackMetaData) {
+	url := fmt.Sprintf(lastfmAPIEndpoint+lastfmAPIAlbumSearchMethod, albumName, apiKey)
+	response, err := http.Get(url)
+	if err != nil {
+		log.Fatal(err)
+	}
+	responseData, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	//fmt.Println(string(responseData)[0:1000])
+	//var jsonObj lastfmTrackSearchResponse
+	var result map[string]interface{}
+	fmt.Printf("%#v \n", string(responseData))
+	errjson := json.Unmarshal(responseData, &result)
+	if errjson != nil {
+		log.Fatal(errjson.Error())
+	}
+
+	results := result["results"].(map[string]interface{})
+	matches := results["albummatches"].(map[string]interface{})
+	albums := matches["album"].([]interface{})
+	fmt.Printf("%#v \n", results)
+	for indexTrack, album := range albums {
+		albumMap := album.(map[string]interface{})
+		fmt.Printf("INDEX %d \n", indexTrack)
+		fmt.Printf("%#v \n", albumMap)
+
+		fmt.Println("--------------")
+	}
+
 	return
 }
