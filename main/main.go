@@ -26,7 +26,7 @@ func main() {
 			log.Fatalln("ERROR ON : " + musicFile)
 			log.Fatal(errFile)
 		}
-		media, _ := medias.Test(f)
+		media, _ := medias.ExtractMetadata(f)
 		fmt.Println("Result : " + media.ToString())
 	}
 

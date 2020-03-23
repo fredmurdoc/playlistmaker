@@ -9,17 +9,17 @@ import (
 
 // TrackMetaData struct of metadata from track
 type TrackMetaData struct {
-	filepath         string
-	name             string
-	durationInSecond uint64
-	order            int
-	album            string
-	artist           string
-	genre            string
+	Filepath         string
+	Name             string
+	DurationInSecond uint64
+	Order            int
+	Album            string
+	Artist           string
+	Genre            string
 }
 
-//Test test function
-func Test(f *os.File) (*TrackMetaData, error) {
+//ExtractMetadata Test test function
+func ExtractMetadata(f *os.File) (*TrackMetaData, error) {
 
 	meta := TrackMetaData{}
 	m, err := tag.ReadFrom(f)
@@ -28,18 +28,21 @@ func Test(f *os.File) (*TrackMetaData, error) {
 		return &meta, err
 	}
 	fileInfo, _ := f.Stat()
-	meta.filepath = fileInfo.Name()
-	meta.name = m.Title()
-	meta.album = m.Album()
-	meta.artist = m.Artist()
-	meta.durationInSecond = 0
-	meta.genre = m.Genre()
+	meta.Filepath = fileInfo.Name()
+	meta.Name = m.Title()
+	meta.Album = m.Album()
+	meta.Artist = m.Artist()
+	meta.DurationInSecond = 0
+	meta.Genre = m.Genre()
 	trackNum, _ := m.Track()
-	meta.order = trackNum
+	meta.Order = trackNum
 	return &meta, err
 }
 
 //ToString get string representation
 func (meta TrackMetaData) ToString() string {
-	return string(meta.durationInSecond) + " - " + meta.name + " - " + meta.artist
+	return "Duration : " + string(meta.DurationInSecond) +
+		" - Title : " + meta.Name +
+		" - Artist : " + meta.Artist +
+		" - Album : " + meta.Album
 }

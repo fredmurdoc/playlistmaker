@@ -1,7 +1,6 @@
 package medias
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -16,5 +15,9 @@ func TestMetadataExtractor(m *testing.T) {
 		log.Fatal(errFile)
 	}
 	media, _ := medias.ExtractMetadata(file)
-	fmt.Println("Result : " + media.ToString())
+	expected := "Duration :  - Title : Medulla-Vagus - Artist : Steve Coleman and Five Elements - Album : Functional Arrhythmias"
+	got := media.ToString()
+	if expected != got {
+		m.Fatal("expected: '" + expected + "', got: '" + got + "'")
+	}
 }
