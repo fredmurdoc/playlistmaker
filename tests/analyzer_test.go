@@ -1,4 +1,4 @@
-package medias
+package tests
 
 import (
 	"log"

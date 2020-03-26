@@ -2,7 +2,7 @@
 
 ## Objectifs
 
-Spécfifier les fonctionnalités de l'outil
+Spécifier les fonctionnalités de l'outil
 
 ## Contexte
 
