@@ -34,4 +34,12 @@ func TestFindSubDirectoriesWithNoPlaylistDirWithOutPlaylist(m *testing.T) {
 	}
 }
 
+func TestGetFirstEligibleTrack(m *testing.T) {
+	t := playlistmaker.GetFirstEligibleTrack(baseDir + "/dirwithmultiplemedias")
+	expected := "test01.ogg"
+	if t.FilePath != expected {
+		m.Fatal("No Found expected : " + expected + ", got: " + t.FilePath)
+	}
+}
+
 //dirwithmixedcontent
