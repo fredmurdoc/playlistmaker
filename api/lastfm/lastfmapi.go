@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/fredmurdoc/playlistmaker"
 	"github.com/fredmurdoc/playlistmaker/api"
@@ -20,19 +21,13 @@ const (
 	lastfmAPIAlbumInfoMethod   = "method=album.getinfo&api_key=%s&artist=%s&album=%s&format=json"
 )
 
-// TrackMetaData struct of metadata from track
-type TrackMetaData struct {
-	Filepath         string
-	Name             string
-	DurationInSecond uint64
-	Order            uint8
-	Album            string
-	Artist           string
-	Genre            string
+//LastFM struct
+type LastFM struct {
+	api.PlaylistAPIProviderInterface
 }
 
 // GetAPIResult retrieve result from api
-func GetAPIResult(t *playlistmaker.Track) (result *api.PlaylistAPIResult) {
+func (m *LastFM) GetAPIResult(t *playlistmaker.Track) (result *api.PlaylistAPIResult) {
 	url := fmt.Sprintf(lastfmAPIEndpoint+lastfmAPIAlbumInfoMethod, apiKey, t.Artist, t.Album)
 	response, err := http.Get(url)
 	if err != nil {
@@ -57,13 +52,27 @@ func GetAPIResult(t *playlistmaker.Track) (result *api.PlaylistAPIResult) {
 	fmt.Println()
 
 	tracksObjs := resultAPI["album"].(map[string]interface{})["tracks"].(map[string]interface{})
-
+	result.Album = resultAPI["album"].(map[string]interface{})["name"].(string)
 	trackMapsObj := tracksObjs["track"]
 	trackMaps := trackMapsObj.([]interface{})
-	for indexTrack, trackMap := range trackMaps {
-		fmt.Printf("TRACK INDEX %v \n", indexTrack)
-		fmt.Printf("%#v \n", trackMap)
-		fmt.Println("--------------")
+	for _, trackMap := range trackMaps {
+
+		t := api.TrackAPIResult{}
+		t.Artist = trackMap.(map[string]interface{})["artist"].(map[string]interface{})["name"].(string)
+
+		t.Title = trackMap.(map[string]interface{})["name"].(string)
+		duration, errConv := strconv.Atoi(trackMap.(map[string]interface{})["duration"].(string))
+		if errConv != nil {
+			duration = 0
+		}
+		t.Length = duration
+
+		order, errConv2 := strconv.Atoi(trackMap.(map[string]interface{})["@attr"].(map[string]interface{})["rank"].(string))
+		if errConv2 != nil {
+			order = 0
+		}
+		t.Order = order
+		result.Tracks = append(result.Tracks, t)
 	}
 
 	return result

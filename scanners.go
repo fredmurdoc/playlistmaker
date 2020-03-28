@@ -59,25 +59,46 @@ func FindSubDirectoriesWithNoPlaylist(root string) {
 
 //isTrackIsEligibleForAPICall : determine si les informations du Track sont suffisante, retourne vrai ou faux{
 func isTrackIsEligibleForAPICall(t *Track) bool {
+	LogInstance().Debug("testTrack : " + t.String())
 	return t.Artist != "" && t.Album != "" && t.Title != ""
 }
 
 //GetFirstEligibleTrack : prend le premier fichier musical eligible, retourne Track eligible
-func GetFirstEligibleTrack(repertoire string) Track {
-	var eligible Track
+func GetFirstEligibleTrack(repertoire string) *Track {
+	var eligible *Track
+	eligible = nil
 	filepath.Walk(repertoire, func(path string, f os.FileInfo, err error) error {
+		if eligible != nil {
+			return nil
+		}
+		LogInstance().Debug("scan : " + path)
 		if IsTrack(f) {
-			t := Track{}
+			LogInstance().Debug("is track : " + path)
+			t := new(Track)
 			f, err := os.Open(path)
 			if err != nil {
+				LogInstance().Debug("error opening : " + path)
 				log.Fatal(err)
 				return err
 			}
-			ExtractMetadataToTrack(f, &t)
-			if isTrackIsEligibleForAPICall(&t) {
+			LogInstance().Debug("extract metadata : " + path)
+			errExtract := ExtractMetadataToTrack(f, t)
+			LogInstance().Debug("extract metadata return : ")
+			LogInstance().Debug(errExtract)
+			if errExtract != nil {
+				LogInstance().Debug("error on : " + path)
+				log.Fatalln(errExtract)
+				return errExtract
+			}
+			if isTrackIsEligibleForAPICall(t) {
+				LogInstance().Debug("is eligible : " + path)
 				eligible = t
 				return nil
+			} else {
+				LogInstance().Debug("not eligible : " + path)
 			}
+		} else {
+			LogInstance().Debug("is not a track : " + path)
 		}
 		return nil
 	})

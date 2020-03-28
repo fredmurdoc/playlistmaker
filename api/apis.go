@@ -23,10 +23,9 @@ type TrackAPIResult struct {
 	Length int
 }
 
-//GetAlbumPlaylistFromNameAndArtist retrieve playlist from track
-func GetAlbumPlaylistFromNameAndArtist(t *playlistmaker.Track, api PlaylistAPIProviderInterface) *playlistmaker.Playlist {
+//GetAlbumPlaylistFromAPIProviderByNameAndArtist retrieve playlist from track
+func GetAlbumPlaylistFromAPIProviderByNameAndArtist(t *playlistmaker.Track, api PlaylistAPIProviderInterface) *playlistmaker.Playlist {
 	playlist := new(playlistmaker.Playlist)
-
 	results := api.GetAPIResult(t)
 	playlist = getPlaylistEntriesFromAPIResults(results)
 	return playlist
@@ -36,15 +35,17 @@ func GetAlbumPlaylistFromNameAndArtist(t *playlistmaker.Track, api PlaylistAPIPr
 func getPlaylistEntriesFromAPIResults(results *PlaylistAPIResult) *playlistmaker.Playlist {
 
 	playlist := new(playlistmaker.Playlist)
-	for index, result := range results.Tracks {
+	for _, result := range results.Tracks {
+		pe := new(playlistmaker.PlaylistEntry)
 		t := new(playlistmaker.Track)
 		t.Title = result.Title
 		t.Album = results.Album
 		t.Artist = result.Artist
-		t.Order = result.Order
-		t.Length = result.Length
-		t.FilePath = nil
-		playlist.Tracks = append(playlist.Tracks, t)
+		pe.Order = result.Order
+		pe.Length = result.Length
+		t.FilePath = ""
+		pe.Track = t
+		playlist.Entries = append(playlist.Entries, pe)
 	}
 	return playlist
 }

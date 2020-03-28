@@ -97,20 +97,22 @@ PlaylistWriter {
 package api {
 
     PlaylistApiResult{
-        album
-        artist
-        ordre
-        duree
+        Album
+        Artist
+        Order
+        Length
     }
-    PlaylistApiInterface{
+
+    PlaylistApiProviderInterface{
     //getApiResult: appelle l'api et retourne les resultats
+        callAlbumAPI(Track)
         getApiResult(Track){
-            result = callAlbumAPI(Track.album, Track.artist)
+            result = callAlbumAPI(Track)
         }
     }
 
     PlaylistApi {
-        PlaylistApiInterface
+        PlaylistApiProviderInterface
         //GetAlbumPlaylistFromNameAndArtist: retourne PlaylistEntry[] ou rien
         GetAlbumPlaylistFromNameAndArtist(Track){
             PlaylistApiResult[] results = PlaylistApiInterface.getApiResult(Track.album, Track.artist)

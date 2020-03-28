@@ -5,11 +5,11 @@ import (
 )
 
 type Playlist struct {
-	repertoire string
-	header     string
-	entries    []PlaylistEntry
-	tail       string
-	filename   string
+	Directory string
+	Header    string
+	Entries   []*PlaylistEntry
+	Tail      string
+	Filename  string
 }
 
 const firstLine string = "#EXTM3U"
@@ -20,27 +20,29 @@ var infoLineFormat string = "#EXTINF:%d, %s - %s\n%s"
 //ToString:  retourne le contenu de la playlist sous forme de texte
 func (p *Playlist) String() string {
 	final := firstLine + "\n"
-	for i := 0; i < len(p.entries); i++ {
-		final += p.entries[i].String() + "\n"
+	for i := 0; i < len(p.Entries); i++ {
+		final += p.Entries[i].String() + "\n"
 	}
 	return final
 }
 
 type PlaylistEntry struct {
-	track  Track
-	order  int
-	length int
+	Track  *Track
+	Order  int
+	Length int
 }
 
 func (pe *PlaylistEntry) String() string {
-	return fmt.Sprintf(infoLineFormat, pe.length, pe.track.Artist, pe.track.Title, pe.track.FilePath)
+	return fmt.Sprintf(infoLineFormat, pe.Length, pe.Track.Artist, pe.Track.Title, pe.Track.FilePath)
 }
 
+//Track track embedded in playlist
 type Track struct {
 	Title    string
 	Album    string
 	Artist   string
 	FilePath string
+	FileName string
 }
 
 //ToString get string representation
