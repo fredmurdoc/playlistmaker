@@ -33,3 +33,5 @@ func TestFindSubDirectoriesWithNoPlaylistDirWithOutPlaylist(m *testing.T) {
 		m.Fatal("No Found a directory with no playlist" + directoryWithNoPlaylist)
 	}
 }
+
+//dirwithmixedcontent

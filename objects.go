@@ -33,12 +33,19 @@ type PlaylistEntry struct {
 }
 
 func (pe *PlaylistEntry) String() string {
-	return fmt.Sprintf(infoLineFormat, pe.length, pe.track.artist, pe.track.title, pe.track.filePath)
+	return fmt.Sprintf(infoLineFormat, pe.length, pe.track.Artist, pe.track.Title, pe.track.FilePath)
 }
 
 type Track struct {
-	title    string
-	album    string
-	artist   string
-	filePath string
+	Title    string
+	Album    string
+	Artist   string
+	FilePath string
+}
+
+//ToString get string representation
+func (t *Track) String() string {
+	return " - Title : " + t.Title +
+		" - Artist : " + t.Artist +
+		" - Album : " + t.Album
 }

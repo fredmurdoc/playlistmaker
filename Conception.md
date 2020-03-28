@@ -47,94 +47,96 @@ Objet Track {
     filePath
 }
 
-TrackFilter{
-    isTrack(file)
-}
+package filters {
+    TrackFilter{
+        isTrack(file)
+    }
 
-PlaylistFilter{
-    isPlaylist(file)
+    PlaylistFilter{
+        isPlaylist(file)
+    }
 }
 
 TrackMetadataExtractor{
-    ExtractToTrack(file, Track) : alimente le Track avec les metadonnées extraites
+    ExtractToTrack(file, Track) : alimente le Track avec les metadonnées extraites dans le fichier de media
 }
-
-PlaylistScanner {
-    //FindDirectoriesWithoutPlaylist :  retourne list de repertoires qui ne possèdent pas de playlist
-    FindDirectoriesWithoutPlaylist(repertoireRacine)
-}
-
-PlaylistFabric{
-    TrackFilter
-    TrackMetadataExtractor
-    isTrackIsEligible(Track) : determine si les informations du Track sont suffisante, retourne vrai ou faux{
-        return Track.artist != '' &&
-        Track.album != '' &&
-        Track.title != ''
+package scanners {
+    PlaylistScanner {
+        //FindDirectoriesWithoutPlaylist :  retourne list de repertoires qui ne possèdent pas de playlist
+        FindDirectoriesWithoutPlaylist(repertoireRacine)
     }
-    //getFirstEligibleTrack: prend le premier fichier musical eligible, retourne Track eligible
-    getFirstEligibleTrack(repertoire)  {
-        foreach(file in repertoire){
-            if(TrackFilter.isTrack(file)){
-                t = new Track()
-                TrackMetadataExtractor.ExtractToTrack(file, t)
-                if isTrackIsEligible(t){
-                    return t
+
+    //EligibleApiCallTrackScanner :  se charge de trouver le premier track eligible à un apel API sur la base d'un repertoire
+    EligibleApiCallTrackScanner{
+        TrackFilter
+        TrackMetadataExtractor
+        isTrackIsEligibleForApiCall(Track) : determine si les informations du Track sont suffisante, retourne vrai ou faux{
+            return Track.artist != '' &&
+            Track.album != '' &&
+            Track.title != ''
+        }
+        //getFirstEligibleTrack: prend le premier fichier musical eligible, retourne Track eligible
+        getFirstEligibleTrack(repertoire)  {
+            foreach(file in repertoire){
+                if(TrackFilter.isTrack(file)){
+                    t = new Track()
+                    TrackMetadataExtractor.ExtractToTrack(file, t)
+                    if isTrackIsEligibleForApiCall(t){
+                        return t
+                    }
                 }
             }
-        }
+        }    
     }
-    //Create : retourne l'objet playlist ou pas du répertoire
-    Create(repertoire) {
-        Track = getFirstEligibleTrack(repertoire)
-        Playlist = PlaylistApi.GetAlbumPlaylistFromNameAndArtist(Track)    
-    }
+}
+PlaylistWriter {
     //Write : écrit le fichier playlist dans le format attendu
     Write(Playlist)
 }
 
-PlaylistApiResult{
-    album
-    artist
-    ordre
-    duree
-}
+package api {
 
-PlaylistApiInterface{
-//getApiResult: appelle l'api et retourne les resultats
-    getApiResult(Track){
-        result = callAlbumAPI(Track.album, Track.artist)
+    PlaylistApiResult{
+        album
+        artist
+        ordre
+        duree
     }
-}
-
-PlaylistApi {
-    PlaylistApiInterface
-    //GetAlbumPlaylistFromNameAndArtist: retourne PlaylistEntry[] ou rien
-    GetAlbumPlaylistFromNameAndArtist(Track){
-        PlaylistApiResult[] results = PlaylistApiInterface.getApiResult(Track.album, Track.artist)
-        entries = getPlaylistEntriesFromApiResults(results)
-        Playlist = new Playlist(entries)
-        return Playlist    
-    }
-    
-
-    //getPlaylistEntriesFromApiResults:  parse les resultats de l'API 
-    getPlaylistEntriesFromApiResults(results){
-            entries []
-            foreach(result in results){
-                PlaylistEntry.Track = new Track
-                PlaylistEntry.Track.title 
-                PlaylistEntry.Track.album = result.album
-                PlaylistEntry.Track.artist = result.artist
-                PlaylistEntry.order = result.ordre
-                PlaylistEntry.length = result.duree
-                PlaylistEntry.Track.filePath = null
-                entries.append(PlaylistEntry)
-            }
-            return entries
+    PlaylistApiInterface{
+    //getApiResult: appelle l'api et retourne les resultats
+        getApiResult(Track){
+            result = callAlbumAPI(Track.album, Track.artist)
         }
-}
+    }
 
+    PlaylistApi {
+        PlaylistApiInterface
+        //GetAlbumPlaylistFromNameAndArtist: retourne PlaylistEntry[] ou rien
+        GetAlbumPlaylistFromNameAndArtist(Track){
+            PlaylistApiResult[] results = PlaylistApiInterface.getApiResult(Track.album, Track.artist)
+            entries = getPlaylistEntriesFromApiResults(results)
+            Playlist = new Playlist(entries)
+            return Playlist    
+        }
+        
+
+        //getPlaylistEntriesFromApiResults:  parse les resultats de l'API 
+        getPlaylistEntriesFromApiResults(results){
+                entries []
+                foreach(result in results){
+                    PlaylistEntry.Track = new Track
+                    PlaylistEntry.Track.title 
+                    PlaylistEntry.Track.album = result.album
+                    PlaylistEntry.Track.artist = result.artist
+                    PlaylistEntry.order = result.ordre
+                    PlaylistEntry.length = result.duree
+                    PlaylistEntry.Track.filePath = null
+                    entries.append(PlaylistEntry)
+                }
+                return entries
+            }
+    }
+}
 Program{
     PlaylistScanner
     PlaylistFabric
@@ -142,7 +144,8 @@ Program{
     main(){
         PlaylistScanner.FindDirectoriesWithoutPlaylist(repertoireRacine) : path[]
         foreach(path in path[]){
-            Playlist = PlaylistFabric.Create(repertoire)
+            Track = PlaylistFabric.GetFirstEligibleTrack(repertoire)
+            Playlist = PlaylistApi.GetAlbumPlaylistFromNameAndArtist(Track)    
             PlaylistFabric.Write(Playlist)
         }
     }
