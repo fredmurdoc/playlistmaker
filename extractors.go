@@ -1,7 +1,6 @@
 package playlistmaker
 
 import (
-	"log"
 	"os"
 
 	"github.com/dhowden/tag"
@@ -11,7 +10,7 @@ import (
 func ExtractMetadataToTrack(f *os.File, t *Track) error {
 	m, err := tag.ReadFrom(f)
 	if err != nil {
-		log.Fatal(err)
+		//log.Fatal(err)
 		return err
 	}
 	fileInfo, _ := f.Stat()

@@ -1,7 +1,6 @@
 package playlistmaker
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -131,35 +130,89 @@ func FinalizeWithFilenames(p *Playlist, directory string) error {
 		return nil
 	})
 	for pathMedia := range mediasList {
-		ok := findCorrespondingEntryInPlaylist(pathMedia, p)
-		if !ok {
-			err = errors.New("cannot find playlist entry for media " + pathMedia)
+		LogInstance().Info("findCorrespondingEntryInPlaylist for " + pathMedia)
+		err = findCorrespondingEntryInPlaylist(pathMedia, p)
+		if err != nil {
+			log.Fatal("cannot find entry in playlist for " + pathMedia)
 		}
 	}
 	return err
 }
 
-func findCorrespondingEntryInPlaylist(mediaFilename string, p *Playlist) bool {
-	relativeMediaName := strings.TrimSuffix(filepath.Base(mediaFilename), filepath.Ext(mediaFilename))
+func findCorrespondingEntryInPlaylist(mediaFilename string, p *Playlist) error {
+
+	t := new(Track)
+	f, errOpen := os.Open(mediaFilename)
+	if errOpen != nil {
+		LogInstance().Debug("error opening : " + mediaFilename)
+		log.Fatal(errOpen)
+		return errOpen
+	}
+	LogInstance().Debug("extract metadata : " + mediaFilename)
+	errExtract := ExtractMetadataToTrack(f, t)
+	LogInstance().Debug("extract metadata error return : ")
+	LogInstance().Debug(errExtract)
+	LogInstance().Debug("extract metadata Track : " + t.String())
+	if errExtract != nil {
+		LogInstance().Debug("extract metadat error on : " + mediaFilename)
+		//log.Fatalln(errExtract)
+		//do nothing, try later with filename
+	}
+
 	hasFound := false
 	for _, entry := range p.Entries {
-		if IsNameMatch(relativeMediaName, entry.Track.Title) {
-			entry.Track.FileName = filepath.Base(mediaFilename)
-			hasFound = true
-		} else {
-			if IsNameMatch(relativeMediaName, strconv.Itoa(entry.Order)+entry.Track.Title) {
-				entry.Track.FileName = filepath.Base(mediaFilename)
-				hasFound = true
-			}
+
+		if t.Title != "" {
+			LogInstance().Debug("try with extracted Track")
+			findBestMatch(t.Title, entry, t.FileName)
 		}
+		if !hasFound {
+			//Try with filename
+			LogInstance().Debug("try with filename")
+			relativeMediaName := strings.TrimSuffix(filepath.Base(mediaFilename), filepath.Ext(mediaFilename))
+			findBestMatch(relativeMediaName, entry, mediaFilename)
+		}
+		if hasFound {
+			LogInstance().Info("entry founded :  " + entry.String())
+		}
+
 	}
+
+	return nil
+}
+
+func findBestMatch(searched string, entry *PlaylistEntry, filename string) bool {
+	var (
+		hasFound    bool
+		actualScore float64
+		newScore    float64
+	)
+	if entry.Track.FileName != "" {
+		actualScore = getScore(entry.Track.FileName, entry.Track.Title)
+	}
+	newScore = getScore(searched, entry.Track.Title)
+	if newScore > actualScore {
+		entry.Track.FileName = filepath.Base(filename)
+		actualScore = newScore
+		hasFound = true
+	}
+	newScore = getScore(searched, strconv.Itoa(entry.Order)+entry.Track.Title)
+	if newScore > actualScore {
+		entry.Track.FileName = filepath.Base(filename)
+		actualScore = newScore
+		hasFound = true
+	}
+
 	return hasFound
+}
+
+func getScore(tested string, target string) float64 {
+	return levenshtein.RatioForStrings([]rune(tested), []rune(target), DistanceDefaultOptionsWithSub)
 }
 
 //IsNameMatch : return if name match tarcget
 func IsNameMatch(tested string, target string) bool {
-
-	distance := levenshtein.RatioForStrings([]rune(tested), []rune(target), DistanceDefaultOptionsWithSub)
+	distance := getScore(tested, target)
 	LogInstance().Debug("tested: " + tested + ", target: " + target + " : distance is " + fmt.Sprint("%d", distance))
 	return distance >= threasholdRatioForDistance
 }

@@ -12,10 +12,6 @@ import (
 
 var baseDir = "../testdata"
 
-func TestScanners(m *testing.T) {
-	playlistmaker.LogInstance().SetLevel(playlistmaker.Debug)
-}
-
 func TestScannersFindSubDirectoriesWithNoPlaylistDirWithPlaylist(m *testing.T) {
 	playlistmaker.FindSubDirectoriesWithNoPlaylist(baseDir)
 	directoryWithPlaylist := baseDir + "/dirwithplaylist"
@@ -65,6 +61,8 @@ func TestScannersDistanceWithTracks(m *testing.T) {
 }
 
 func TestScannersFinalizeWithFilenames(m *testing.T) {
+	playlistmaker.LogInstance().SetLevel(playlistmaker.Info)
+	playlistmaker.LogInstance().Info("TestScannersFinalizeWithFilenames")
 	//notEligible := [1]string{"track not eligible for distance.ogg"}
 	eligibles := [6]string{"01 - TrackTestInName.ogg", "01 - track test in  name.ogg", "01 - track test in  name.ogg", "TrackTestInName.ogg", "track test in  name.ogg", "track-test-in-name.ogg"}
 
@@ -73,7 +71,8 @@ func TestScannersFinalizeWithFilenames(m *testing.T) {
 		pe := playlistmaker.PlaylistEntry{}
 		pe.Order = index
 		pe.Length = 100 + index
-		pe.Track = &playlistmaker.Track{Title: item, Album: "AlbumTest", Artist: "ArtistTest"}
+		trackName := strings.TrimSuffix(filepath.Base(item), filepath.Ext(item))
+		pe.Track = &playlistmaker.Track{Title: trackName, Album: "AlbumTest", Artist: "ArtistTest"}
 
 		p.Entries = append(p.Entries, &pe)
 	}
