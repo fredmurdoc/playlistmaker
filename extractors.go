@@ -15,7 +15,7 @@ func ExtractMetadataToTrack(f *os.File, t *Track) error {
 		return err
 	}
 	fileInfo, _ := f.Stat()
-	t.FilePath = fileInfo.Name()
+	t.FileName = fileInfo.Name()
 	t.Title = m.Title()
 	t.Album = m.Album()
 	t.Artist = m.Artist()

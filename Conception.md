@@ -148,6 +148,7 @@ Program{
         foreach(path in path[]){
             Track = PlaylistFabric.GetFirstEligibleTrack(repertoire)
             Playlist = PlaylistApi.GetAlbumPlaylistFromNameAndArtist(Track)    
+            PlaylistFabric.FinalizeWithFilenames(Playlist)
             PlaylistFabric.Write(Playlist)
         }
     }

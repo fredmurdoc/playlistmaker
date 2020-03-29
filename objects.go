@@ -4,12 +4,13 @@ import (
 	"fmt"
 )
 
+// -----
 type Playlist struct {
 	Directory string
 	Header    string
 	Entries   []*PlaylistEntry
 	Tail      string
-	Filename  string
+	FileName  string
 }
 
 const firstLine string = "#EXTM3U"
@@ -26,6 +27,17 @@ func (p *Playlist) String() string {
 	return final
 }
 
+//IsCompleted return if Playlist is complete for playlist file
+func (p *Playlist) IsCompleted() bool {
+	result := true
+	for _, entry := range p.Entries {
+		result = result && entry.IsCompleted()
+	}
+	return result
+}
+
+// -----
+
 type PlaylistEntry struct {
 	Track  *Track
 	Order  int
@@ -33,15 +45,21 @@ type PlaylistEntry struct {
 }
 
 func (pe *PlaylistEntry) String() string {
-	return fmt.Sprintf(infoLineFormat, pe.Length, pe.Track.Artist, pe.Track.Title, pe.Track.FilePath)
+	return fmt.Sprintf(infoLineFormat, pe.Length, pe.Track.Artist, pe.Track.Title, pe.Track.FileName)
 }
+
+//IsCompleted return if PlaylistEntry is complete for playlist file
+func (pe *PlaylistEntry) IsCompleted() bool {
+	return pe.Length != 0 && pe.Track.Artist != "" && pe.Track.Title != "" && pe.Track.FileName != ""
+}
+
+// -----
 
 //Track track embedded in playlist
 type Track struct {
 	Title    string
 	Album    string
 	Artist   string
-	FilePath string
 	FileName string
 }
 

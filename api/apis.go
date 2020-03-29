@@ -43,7 +43,7 @@ func getPlaylistEntriesFromAPIResults(results *PlaylistAPIResult) *playlistmaker
 		t.Artist = result.Artist
 		pe.Order = result.Order
 		pe.Length = result.Length
-		t.FilePath = ""
+		t.FileName = ""
 		pe.Track = t
 		playlist.Entries = append(playlist.Entries, pe)
 	}

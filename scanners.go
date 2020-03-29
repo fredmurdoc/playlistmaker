@@ -1,10 +1,18 @@
 package playlistmaker
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
+
+	"github.com/texttheater/golang-levenshtein/levenshtein"
 )
+
+const threasholdRatioForDistance = 0.8
 
 var (
 	//DirectoryWithAtLeastMediaFile scanned directory with at lest one media file inside
@@ -13,6 +21,13 @@ var (
 	DirectoryWithNoPlaylist map[string]bool
 	//DirectoryWithPlaylist scanned directory with at lest one playlist file inside
 	DirectoryWithPlaylist map[string]bool
+	//DistanceDefaultOptionsWithSub options for levenshtein distance calculations
+	DistanceDefaultOptionsWithSub levenshtein.Options = levenshtein.Options{
+		InsCost: 1,
+		DelCost: 1,
+		SubCost: 1,
+		Matches: levenshtein.IdenticalRunes,
+	}
 )
 
 //DirectoriesWithoutPlaylistVisitor visitor for walk
@@ -103,4 +118,48 @@ func GetFirstEligibleTrack(repertoire string) *Track {
 		return nil
 	})
 	return eligible
+}
+
+//FinalizeWithFilenames finalize playlist items with filenames in directory
+func FinalizeWithFilenames(p *Playlist, directory string) error {
+	var err error
+	mediasList := make(map[string]os.FileInfo)
+	filepath.Walk(directory, func(path string, f os.FileInfo, err error) error {
+		if IsTrack(f) {
+			mediasList[path] = f
+		}
+		return nil
+	})
+	for pathMedia := range mediasList {
+		ok := findCorrespondingEntryInPlaylist(pathMedia, p)
+		if !ok {
+			err = errors.New("cannot find playlist entry for media " + pathMedia)
+		}
+	}
+	return err
+}
+
+func findCorrespondingEntryInPlaylist(mediaFilename string, p *Playlist) bool {
+	relativeMediaName := strings.TrimSuffix(filepath.Base(mediaFilename), filepath.Ext(mediaFilename))
+	hasFound := false
+	for _, entry := range p.Entries {
+		if IsNameMatch(relativeMediaName, entry.Track.Title) {
+			entry.Track.FileName = filepath.Base(mediaFilename)
+			hasFound = true
+		} else {
+			if IsNameMatch(relativeMediaName, strconv.Itoa(entry.Order)+entry.Track.Title) {
+				entry.Track.FileName = filepath.Base(mediaFilename)
+				hasFound = true
+			}
+		}
+	}
+	return hasFound
+}
+
+//IsNameMatch : return if name match tarcget
+func IsNameMatch(tested string, target string) bool {
+
+	distance := levenshtein.RatioForStrings([]rune(tested), []rune(target), DistanceDefaultOptionsWithSub)
+	LogInstance().Debug("tested: " + tested + ", target: " + target + " : distance is " + fmt.Sprint("%d", distance))
+	return distance >= threasholdRatioForDistance
 }
