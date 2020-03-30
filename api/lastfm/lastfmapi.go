@@ -37,24 +37,29 @@ func (m *LastFM) GetAPIResult(t *playlistmaker.Track) (result *api.PlaylistAPIRe
 	if err != nil {
 		log.Fatal(err)
 	}
-	result = new(api.PlaylistAPIResult)
-	//fmt.Println(string(responseData)[0:1000])
-	//var jsonObj lastfmTrackSearchResponse
+
 	var resultAPI map[string]interface{}
-	//fmt.Printf("%#v \n", string(responseData))
 	errjson := json.Unmarshal(responseData, &resultAPI)
 	if errjson != nil {
 		log.Fatal(errjson.Error())
 	}
-	playlistmaker.LogInstance().Debug(fmt.Sprintf("%#v \n", resultAPI))
+	playlistmaker.LogInstance().Debug(fmt.Sprintf("RESULT API CALL : %#v \n", resultAPI))
 	playlistmaker.LogInstance().Debug("")
 	playlistmaker.LogInstance().Debug("----------")
 	playlistmaker.LogInstance().Debug("")
+	albumObj, ok := resultAPI["album"]
+	if !ok { //found album
+		return nil
+	}
+	tracksObjs := albumObj.(map[string]interface{})["tracks"].(map[string]interface{})
 
-	tracksObjs := resultAPI["album"].(map[string]interface{})["tracks"].(map[string]interface{})
+	result = new(api.PlaylistAPIResult)
 	result.Album = resultAPI["album"].(map[string]interface{})["name"].(string)
 	trackMapsObj := tracksObjs["track"]
 	trackMaps := trackMapsObj.([]interface{})
+	if len(trackMaps) == 0 {
+		return nil
+	}
 	for _, trackMap := range trackMaps {
 
 		t := api.TrackAPIResult{}

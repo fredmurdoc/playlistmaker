@@ -2,6 +2,9 @@ package playlistmaker
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"sort"
 )
 
 // -----
@@ -18,9 +21,14 @@ const firstLine string = "#EXTM3U"
 //#EXTINF:durationinseconde, Sample artist - Sample title
 var infoLineFormat string = "#EXTINF:%d, %s - %s\n%s"
 
+func (p *Playlist) Len() int           { return len(p.Entries) }
+func (p *Playlist) Swap(i, j int)      { p.Entries[i], p.Entries[j] = p.Entries[j], p.Entries[i] }
+func (p *Playlist) Less(i, j int) bool { return p.Entries[i].Order < p.Entries[j].Order }
+
 //ToString:  retourne le contenu de la playlist sous forme de texte
 func (p *Playlist) String() string {
 	final := firstLine + "\n"
+	sort.Sort(p)
 	for i := 0; i < len(p.Entries); i++ {
 		final += p.Entries[i].String() + "\n\n"
 	}
@@ -36,12 +44,31 @@ func (p *Playlist) IsCompleted() bool {
 	return result
 }
 
+//WriteToFile write playlist content to file
+func (p *Playlist) WriteToFile(fileName string) bool {
+	fd, errCreate := os.Create(fileName)
+	if errCreate != nil {
+		log.Fatalln(errCreate)
+		fd.Close()
+	}
+	nb, errWrite := fd.WriteString(p.String())
+	if errWrite != nil {
+		log.Fatalln(errWrite)
+		fd.Close()
+		return false
+	}
+	fd.Close()
+	return nb > 0
+
+}
+
 // -----
 
 type PlaylistEntry struct {
-	Track  *Track
-	Order  int
-	Length int
+	Track     *Track
+	Order     int
+	Length    int
+	BestScore float64
 }
 
 func (pe *PlaylistEntry) String() string {

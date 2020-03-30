@@ -165,11 +165,11 @@ func findCorrespondingEntryInPlaylist(mediaFilename string, p *Playlist) error {
 		if t.Title != "" {
 			LogInstance().Debug(fmt.Sprintf("try with extracted Track %s", t.String()))
 			findBestMatch(t.Title, entry, t.FileName)
+		} else {
+			relativeMediaName := strings.TrimSuffix(filepath.Base(mediaFilename), filepath.Ext(mediaFilename))
+			LogInstance().Debug(fmt.Sprintf("try with filename %s", relativeMediaName))
+			findBestMatch(relativeMediaName, entry, mediaFilename)
 		}
-
-		relativeMediaName := strings.TrimSuffix(filepath.Base(mediaFilename), filepath.Ext(mediaFilename))
-		LogInstance().Debug(fmt.Sprintf("try with filename %s", relativeMediaName))
-		findBestMatch(relativeMediaName, entry, mediaFilename)
 		LogInstance().Info("entry founded :  " + entry.String())
 	}
 
@@ -182,8 +182,9 @@ func findBestMatch(searched string, entry *PlaylistEntry, filename string) bool 
 		actualScore float64
 		newScore    float64
 	)
+	//if we have already found a filaneme, so we have a BestScore
 	if entry.Track.FileName != "" {
-		actualScore = getScore(entry.Track.FileName, entry.Track.Title)
+		actualScore = entry.BestScore
 		LogInstance().Debug(fmt.Sprintf("Set actual score %.6f to existing filename in track %s <-> %s", actualScore, entry.Track.FileName, entry.Track.Title))
 	}
 
@@ -193,9 +194,11 @@ func findBestMatch(searched string, entry *PlaylistEntry, filename string) bool 
 		LogInstance().Debug(fmt.Sprintf("new score %.6f with title %s <-> %s", newScore, searched, entry.Track.Title))
 		LogInstance().Debug(fmt.Sprintf("replace filename %s with  %s", entry.Track.FileName, filepath.Base(filename)))
 		entry.Track.FileName = filepath.Base(filename)
+		entry.BestScore = newScore
 		actualScore = newScore
 		hasFound = true
 	} else {
+		entry.BestScore = actualScore
 		LogInstance().Debug(fmt.Sprintf("no new score %.6f with title %s <-> %s", newScore, searched, entry.Track.Title))
 	}
 	if entry.Order > 0 {
@@ -205,9 +208,11 @@ func findBestMatch(searched string, entry *PlaylistEntry, filename string) bool 
 			LogInstance().Debug(fmt.Sprintf("new score %.6f with title %s <-> %s", newScore, searched, strconv.Itoa(entry.Order)+entry.Track.Title))
 			LogInstance().Debug(fmt.Sprintf("replace filename %s with  %s", entry.Track.FileName, filepath.Base(filename)))
 			entry.Track.FileName = filepath.Base(filename)
+			entry.BestScore = newScore
 			actualScore = newScore
 			hasFound = true
 		} else {
+			entry.BestScore = actualScore
 			LogInstance().Debug(fmt.Sprintf("no new score %.6f with title %s <-> %s", newScore, searched, strconv.Itoa(entry.Order)+entry.Track.Title))
 		}
 	}

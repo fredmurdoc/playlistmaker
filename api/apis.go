@@ -27,8 +27,11 @@ type TrackAPIResult struct {
 func GetAlbumPlaylistFromAPIProviderByNameAndArtist(t *playlistmaker.Track, api PlaylistAPIProviderInterface) *playlistmaker.Playlist {
 	playlist := new(playlistmaker.Playlist)
 	results := api.GetAPIResult(t)
-	playlist = getPlaylistEntriesFromAPIResults(results)
-	return playlist
+	if results != nil {
+		playlist = getPlaylistEntriesFromAPIResults(results)
+		return playlist
+	}
+	return nil
 }
 
 //getPlaylistEntriesFromAPIResults:  parse les resultats de l'API

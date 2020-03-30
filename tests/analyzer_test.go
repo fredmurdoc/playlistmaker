@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fredmurdoc/playlistmaker/medias"
+	"github.com/fredmurdoc/playlistmaker"
 )
 
 //TestMetadataExtractor Test unit
@@ -15,10 +15,11 @@ func TestMetadataExtractor(m *testing.T) {
 	if errFile != nil {
 		log.Fatal(errFile)
 	}
-	media, _ := medias.ExtractMetadata(file)
+	t := new(playlistmaker.Track)
+	playlistmaker.ExtractMetadataToTrack(file, t)
 	expected := "Duration :  - Title : Test02 - Artist : Test - Album : AlbumTest"
 
-	got := media.ToString()
+	got := t.String()
 	if strings.Compare(expected, got) == 0 {
 		m.Fatal("expected: '" + expected + "', got: '" + got + "'")
 	}

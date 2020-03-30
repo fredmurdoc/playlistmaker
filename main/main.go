@@ -18,10 +18,19 @@ func main() {
 	for path, exists := range playlistmaker.DirectoryWithNoPlaylist {
 		if exists {
 			t := playlistmaker.GetFirstEligibleTrack(path)
-			apiProvider := new(lastfm.LastFM)
-			p := api.GetAlbumPlaylistFromAPIProviderByNameAndArtist(t, apiProvider)
-			playlistmaker.FinalizeWithFilenames(p, path)
-			fmt.Println("Result : " + p.String())
+			if t != nil {
+				apiProvider := new(lastfm.LastFM)
+				p := api.GetAlbumPlaylistFromAPIProviderByNameAndArtist(t, apiProvider)
+				if p != nil {
+					playlistmaker.FinalizeWithFilenames(p, path)
+					isWrote := p.WriteToFile(path + "/" + p.Entries[0].Track.Album + ".m3u")
+					if isWrote {
+						playlistmaker.LogInstance().Warn(fmt.Sprintf("Playlist created for %s", path))
+					}
+				} else {
+					playlistmaker.LogInstance().Warn(fmt.Sprintf("Found nothing for %s", path))
+				}
+			}
 		}
 	}
 
