@@ -61,10 +61,11 @@ func TestScannersDistanceWithTracks(m *testing.T) {
 }
 
 func TestScannersFinalizeWithFilenames(m *testing.T) {
-	playlistmaker.LogInstance().SetLevel(playlistmaker.Info)
+
+	playlistmaker.LogInstance().SetLevel(playlistmaker.Debug)
 	playlistmaker.LogInstance().Info("TestScannersFinalizeWithFilenames")
 	//notEligible := [1]string{"track not eligible for distance.ogg"}
-	eligibles := [6]string{"01 - TrackTestInName.ogg", "01 - track test in  name.ogg", "01 - track test in  name.ogg", "TrackTestInName.ogg", "track test in  name.ogg", "track-test-in-name.ogg"}
+	eligibles := []string{"01 - TrackTestInName.ogg", "TrackTestInName.ogg", "track-test-in-name.ogg", "01 - track-test-in-name.ogg"}
 
 	p := playlistmaker.Playlist{}
 	for index, item := range eligibles {

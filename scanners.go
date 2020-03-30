@@ -159,23 +159,18 @@ func findCorrespondingEntryInPlaylist(mediaFilename string, p *Playlist) error {
 		//do nothing, try later with filename
 	}
 
-	hasFound := false
+	//hasFound := false
 	for _, entry := range p.Entries {
 
 		if t.Title != "" {
-			LogInstance().Debug("try with extracted Track")
+			LogInstance().Debug(fmt.Sprintf("try with extracted Track %s", t.String()))
 			findBestMatch(t.Title, entry, t.FileName)
 		}
-		if !hasFound {
-			//Try with filename
-			LogInstance().Debug("try with filename")
-			relativeMediaName := strings.TrimSuffix(filepath.Base(mediaFilename), filepath.Ext(mediaFilename))
-			findBestMatch(relativeMediaName, entry, mediaFilename)
-		}
-		if hasFound {
-			LogInstance().Info("entry founded :  " + entry.String())
-		}
 
+		relativeMediaName := strings.TrimSuffix(filepath.Base(mediaFilename), filepath.Ext(mediaFilename))
+		LogInstance().Debug(fmt.Sprintf("try with filename %s", relativeMediaName))
+		findBestMatch(relativeMediaName, entry, mediaFilename)
+		LogInstance().Info("entry founded :  " + entry.String())
 	}
 
 	return nil
@@ -189,20 +184,33 @@ func findBestMatch(searched string, entry *PlaylistEntry, filename string) bool 
 	)
 	if entry.Track.FileName != "" {
 		actualScore = getScore(entry.Track.FileName, entry.Track.Title)
-	}
-	newScore = getScore(searched, entry.Track.Title)
-	if newScore > actualScore {
-		entry.Track.FileName = filepath.Base(filename)
-		actualScore = newScore
-		hasFound = true
-	}
-	newScore = getScore(searched, strconv.Itoa(entry.Order)+entry.Track.Title)
-	if newScore > actualScore {
-		entry.Track.FileName = filepath.Base(filename)
-		actualScore = newScore
-		hasFound = true
+		LogInstance().Debug(fmt.Sprintf("Set actual score %.6f to existing filename in track %s <-> %s", actualScore, entry.Track.FileName, entry.Track.Title))
 	}
 
+	newScore = getScore(searched, entry.Track.Title)
+
+	if newScore > actualScore {
+		LogInstance().Debug(fmt.Sprintf("new score %.6f with title %s <-> %s", newScore, searched, entry.Track.Title))
+		LogInstance().Debug(fmt.Sprintf("replace filename %s with  %s", entry.Track.FileName, filepath.Base(filename)))
+		entry.Track.FileName = filepath.Base(filename)
+		actualScore = newScore
+		hasFound = true
+	} else {
+		LogInstance().Debug(fmt.Sprintf("no new score %.6f with title %s <-> %s", newScore, searched, entry.Track.Title))
+	}
+	if entry.Order > 0 {
+		newScore = getScore(searched, strconv.Itoa(entry.Order)+entry.Track.Title)
+
+		if newScore > actualScore {
+			LogInstance().Debug(fmt.Sprintf("new score %.6f with title %s <-> %s", newScore, searched, strconv.Itoa(entry.Order)+entry.Track.Title))
+			LogInstance().Debug(fmt.Sprintf("replace filename %s with  %s", entry.Track.FileName, filepath.Base(filename)))
+			entry.Track.FileName = filepath.Base(filename)
+			actualScore = newScore
+			hasFound = true
+		} else {
+			LogInstance().Debug(fmt.Sprintf("no new score %.6f with title %s <-> %s", newScore, searched, strconv.Itoa(entry.Order)+entry.Track.Title))
+		}
+	}
 	return hasFound
 }
 
@@ -213,6 +221,6 @@ func getScore(tested string, target string) float64 {
 //IsNameMatch : return if name match tarcget
 func IsNameMatch(tested string, target string) bool {
 	distance := getScore(tested, target)
-	LogInstance().Debug("tested: " + tested + ", target: " + target + " : distance is " + fmt.Sprint("%d", distance))
+	LogInstance().Debug("tested: " + tested + ", target: " + target + " : distance is " + fmt.Sprint("%.6f", distance))
 	return distance >= threasholdRatioForDistance
 }

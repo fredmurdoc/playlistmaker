@@ -22,7 +22,7 @@ var infoLineFormat string = "#EXTINF:%d, %s - %s\n%s"
 func (p *Playlist) String() string {
 	final := firstLine + "\n"
 	for i := 0; i < len(p.Entries); i++ {
-		final += p.Entries[i].String() + "\n"
+		final += p.Entries[i].String() + "\n\n"
 	}
 	return final
 }

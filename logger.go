@@ -49,6 +49,7 @@ var singletonLogger *MyLogger
 func LogInstance() *MyLogger {
 	if singletonLogger == nil {
 		singletonLogger = new(MyLogger)
+		singletonLogger.SetLevel(Warn)
 	}
 	return singletonLogger
 }

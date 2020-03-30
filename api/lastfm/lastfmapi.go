@@ -46,10 +46,10 @@ func (m *LastFM) GetAPIResult(t *playlistmaker.Track) (result *api.PlaylistAPIRe
 	if errjson != nil {
 		log.Fatal(errjson.Error())
 	}
-	fmt.Printf("%#v \n", resultAPI)
-	fmt.Println()
-	fmt.Println("----------")
-	fmt.Println()
+	playlistmaker.LogInstance().Debug(fmt.Sprintf("%#v \n", resultAPI))
+	playlistmaker.LogInstance().Debug("")
+	playlistmaker.LogInstance().Debug("----------")
+	playlistmaker.LogInstance().Debug("")
 
 	tracksObjs := resultAPI["album"].(map[string]interface{})["tracks"].(map[string]interface{})
 	result.Album = resultAPI["album"].(map[string]interface{})["name"].(string)
