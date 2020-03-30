@@ -1,33 +1,28 @@
 package main
 
 import (
-	//"github.com/fredmurdoc/playlistmaker/lastfm"
 	"flag"
 	"fmt"
-	"log"
-	"os"
-	"path/filepath"
 
-	"github.com/fredmurdoc/playlistmaker/medias"
+	"github.com/fredmurdoc/playlistmaker"
+	"github.com/fredmurdoc/playlistmaker/api"
+	"github.com/fredmurdoc/playlistmaker/api/lastfm"
 )
 
 func main() {
 	flag.Parse()
 	root := flag.Arg(0)
-	err := filepath.Walk(root, medias.Visitor)
-	fmt.Printf("filepath.Walk() returned %v\n", err)
-	list := medias.FindMissingMusicFilesList()
-	for i := 0; i < len(list); i++ {
-		fmt.Printf("file : " + list[i] + "\n")
-		musicFile := list[i]
+	playlistmaker.LogInstance().SetLevel(playlistmaker.Debug)
+	playlistmaker.FindSubDirectoriesWithNoPlaylist(root)
 
-		f, errFile := os.Open(musicFile)
-		if errFile != nil {
-			log.Fatalln("ERROR ON : " + musicFile)
-			log.Fatal(errFile)
+	for path, exists := range playlistmaker.DirectoryWithNoPlaylist {
+		if exists {
+			t := playlistmaker.GetFirstEligibleTrack(path)
+			apiProvider := new(lastfm.LastFM)
+			p := api.GetAlbumPlaylistFromAPIProviderByNameAndArtist(t, apiProvider)
+			playlistmaker.FinalizeWithFilenames(p, path)
+			fmt.Println("Result : " + p.String())
 		}
-		media, _ := medias.ExtractMetadata(f)
-		fmt.Println("Result : " + media.ToString())
 	}
 
 	//lastfm.GetAlbumMetadataFromMedia("my funny Valentine")

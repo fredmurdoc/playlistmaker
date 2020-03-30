@@ -73,7 +73,7 @@ func FindSubDirectoriesWithNoPlaylist(root string) {
 
 //isTrackIsEligibleForAPICall : determine si les informations du Track sont suffisante, retourne vrai ou faux{
 func isTrackIsEligibleForAPICall(t *Track) bool {
-	LogInstance().Debug("testTrack : " + t.String())
+	LogInstance().Debug("isTrackIsEligibleForAPICall : " + t.String())
 	return t.Artist != "" && t.Album != "" && t.Title != ""
 }
 
