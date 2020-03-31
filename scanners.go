@@ -153,7 +153,7 @@ func findCorrespondingEntryInPlaylist(mediaFilename string, p *Playlist) error {
 	if errExtract != nil {
 		LogInstance().Debug("extract metadat error on : " + mediaFilename)
 	}
-	filesInPlaylist := make(map[string]bool)
+
 	for _, entry := range p.Entries {
 		if t.Title != "" {
 			LogInstance().Debug(fmt.Sprintf("try with extracted Track %s", t.String()))
@@ -163,6 +163,12 @@ func findCorrespondingEntryInPlaylist(mediaFilename string, p *Playlist) error {
 			LogInstance().Debug(fmt.Sprintf("try with filename %s", relativeMediaName))
 			findBestMatch(relativeMediaName, entry, mediaFilename)
 		}
+
+		LogInstance().Info("entry founded :  " + entry.String())
+	}
+	//control playlist
+	filesInPlaylist := make(map[string]bool)
+	for _, entry := range p.Entries {
 		currentFilename := entry.Track.FileName
 		if len(currentFilename) > 0 {
 			if _, exists := filesInPlaylist[currentFilename]; exists {
@@ -172,7 +178,6 @@ func findCorrespondingEntryInPlaylist(mediaFilename string, p *Playlist) error {
 			LogInstance().Debug(fmt.Sprintf("append %s to control list", currentFilename))
 			filesInPlaylist[currentFilename] = true
 		}
-		LogInstance().Info("entry founded :  " + entry.String())
 	}
 
 	return nil
