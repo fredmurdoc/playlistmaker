@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/fredmurdoc/playlistmaker"
@@ -28,7 +29,8 @@ type LastFM struct {
 
 // GetAPIResult retrieve result from api
 func (m *LastFM) GetAPIResult(t *playlistmaker.Track) (result *api.PlaylistAPIResult) {
-	url := fmt.Sprintf(lastfmAPIEndpoint+lastfmAPIAlbumInfoMethod, apiKey, t.Artist, t.Album)
+	url := fmt.Sprintf(lastfmAPIEndpoint+lastfmAPIAlbumInfoMethod, apiKey, url.QueryEscape(t.Artist), url.QueryEscape(t.Album))
+	playlistmaker.LogInstance().Warn(fmt.Sprintf("GetAPIResult call url %s", url))
 	response, err := http.Get(url)
 	if err != nil {
 		log.Fatal(err)
@@ -41,6 +43,9 @@ func (m *LastFM) GetAPIResult(t *playlistmaker.Track) (result *api.PlaylistAPIRe
 	var resultAPI map[string]interface{}
 	errjson := json.Unmarshal(responseData, &resultAPI)
 	if errjson != nil {
+		playlistmaker.LogInstance().Warn("GetAPIResult error")
+		playlistmaker.LogInstance().Warn("GetAPIResult responseData")
+		playlistmaker.LogInstance().Warn(string(responseData))
 		log.Fatal(errjson.Error())
 	}
 	playlistmaker.LogInstance().Debug(fmt.Sprintf("RESULT API CALL : %#v \n", resultAPI))

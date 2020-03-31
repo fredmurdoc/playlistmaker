@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-var playlistSuffix = []string{"m3u"}
+var playlistSuffix = []string{"m3u", "cue"}
 var mediaSuffix = [3]string{"mp3", "flac", "ogg"}
 
 type TrackFilter interface {

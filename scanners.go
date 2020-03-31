@@ -1,6 +1,7 @@
 package playlistmaker
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -78,10 +79,10 @@ func isTrackIsEligibleForAPICall(t *Track) bool {
 }
 
 //GetFirstEligibleTrack : prend le premier fichier musical eligible, retourne Track eligible
-func GetFirstEligibleTrack(repertoire string) *Track {
+func GetFirstEligibleTrack(repertoire string) (*Track, error) {
 	var eligible *Track
 	eligible = nil
-	filepath.Walk(repertoire, func(path string, f os.FileInfo, err error) error {
+	errWalk := filepath.Walk(repertoire, func(path string, f os.FileInfo, err error) error {
 		if eligible != nil {
 			return nil
 		}
@@ -101,7 +102,6 @@ func GetFirstEligibleTrack(repertoire string) *Track {
 			LogInstance().Debug(errExtract)
 			if errExtract != nil {
 				LogInstance().Debug("error on : " + path)
-				log.Fatalln(errExtract)
 				return errExtract
 			}
 			if isTrackIsEligibleForAPICall(t) {
@@ -116,7 +116,7 @@ func GetFirstEligibleTrack(repertoire string) *Track {
 		}
 		return nil
 	})
-	return eligible
+	return eligible, errWalk
 }
 
 //FinalizeWithFilenames finalize playlist items with filenames in directory
@@ -132,9 +132,6 @@ func FinalizeWithFilenames(p *Playlist, directory string) error {
 	for pathMedia := range mediasList {
 		LogInstance().Info("findCorrespondingEntryInPlaylist for " + pathMedia)
 		err = findCorrespondingEntryInPlaylist(pathMedia, p)
-		if err != nil {
-			log.Fatal("cannot find entry in playlist for " + pathMedia)
-		}
 	}
 	return err
 }
@@ -155,13 +152,9 @@ func findCorrespondingEntryInPlaylist(mediaFilename string, p *Playlist) error {
 	LogInstance().Debug("extract metadata Track : " + t.String())
 	if errExtract != nil {
 		LogInstance().Debug("extract metadat error on : " + mediaFilename)
-		//log.Fatalln(errExtract)
-		//do nothing, try later with filename
 	}
-
-	//hasFound := false
+	filesInPlaylist := make(map[string]bool)
 	for _, entry := range p.Entries {
-
 		if t.Title != "" {
 			LogInstance().Debug(fmt.Sprintf("try with extracted Track %s", t.String()))
 			findBestMatch(t.Title, entry, t.FileName)
@@ -169,6 +162,15 @@ func findCorrespondingEntryInPlaylist(mediaFilename string, p *Playlist) error {
 			relativeMediaName := strings.TrimSuffix(filepath.Base(mediaFilename), filepath.Ext(mediaFilename))
 			LogInstance().Debug(fmt.Sprintf("try with filename %s", relativeMediaName))
 			findBestMatch(relativeMediaName, entry, mediaFilename)
+		}
+		currentFilename := entry.Track.FileName
+		if len(currentFilename) > 0 {
+			if _, exists := filesInPlaylist[currentFilename]; exists {
+				LogInstance().Warn(fmt.Sprintf("%s is already in control list", currentFilename))
+				return errors.New("Playlist with multiple entries with same file")
+			}
+			LogInstance().Debug(fmt.Sprintf("append %s to control list", currentFilename))
+			filesInPlaylist[currentFilename] = true
 		}
 		LogInstance().Info("entry founded :  " + entry.String())
 	}

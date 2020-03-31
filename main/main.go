@@ -17,15 +17,27 @@ func main() {
 
 	for path, exists := range playlistmaker.DirectoryWithNoPlaylist {
 		if exists {
-			t := playlistmaker.GetFirstEligibleTrack(path)
+			playlistmaker.LogInstance().Debug("call GetFirstEligibleTrack")
+			t, err := playlistmaker.GetFirstEligibleTrack(path)
+			if err != nil {
+				playlistmaker.LogInstance().Warn(err.Error())
+				t = nil
+			}
 			if t != nil {
 				apiProvider := new(lastfm.LastFM)
+				playlistmaker.LogInstance().Debug("call api.GetAlbumPlaylistFromAPIProviderByNameAndArtist")
 				p := api.GetAlbumPlaylistFromAPIProviderByNameAndArtist(t, apiProvider)
 				if p != nil {
-					playlistmaker.FinalizeWithFilenames(p, path)
-					isWrote := p.WriteToFile(path + "/" + p.Entries[0].Track.Album + ".m3u")
-					if isWrote {
-						playlistmaker.LogInstance().Warn(fmt.Sprintf("Playlist created for %s", path))
+					playlistmaker.LogInstance().Debug("call playlistmaker.FinalizeWithFilenames")
+					errorFinalize := playlistmaker.FinalizeWithFilenames(p, path)
+					if errorFinalize == nil {
+						playlistmaker.LogInstance().Debug("call playlis.WriteToFile")
+						isWrote := p.WriteToFileInDirectory(path)
+						if isWrote {
+							playlistmaker.LogInstance().Warn(fmt.Sprintf("Playlist created for %s", path))
+						}
+					} else {
+						playlistmaker.LogInstance().Warn(errorFinalize.Error())
 					}
 				} else {
 					playlistmaker.LogInstance().Warn(fmt.Sprintf("Found nothing for %s", path))

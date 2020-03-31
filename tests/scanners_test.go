@@ -39,7 +39,7 @@ func TestScannersFindSubDirectoriesWithNoPlaylistDirWithOutPlaylist(m *testing.T
 }
 
 func TestScannersGetFirstEligibleTrack(m *testing.T) {
-	t := playlistmaker.GetFirstEligibleTrack(baseDir + "/dirwithmultiplemedias")
+	t, _ := playlistmaker.GetFirstEligibleTrack(baseDir + "/dirwithmultiplemedias")
 	expected := "test01.ogg"
 	if t.FileName != expected {
 		m.Fatal("No Found expected : " + expected + ", got: " + t.FileName)
@@ -77,19 +77,24 @@ func TestScannersFinalizeWithFilenames(m *testing.T) {
 
 		p.Entries = append(p.Entries, &pe)
 	}
-	playlistmaker.FinalizeWithFilenames(&p, baseDir+"/dirfordistance")
-	fmt.Println(p.String())
-	isCompleted := p.IsCompleted()
-	if !isCompleted {
-		m.Fatal("Playlist is not Completed !!")
-	}
-	for _, itemExpected := range eligibles {
-		found := false
-		for _, itemGot := range p.Entries {
-			found = found || (itemGot.Track.FileName == itemExpected)
+	errorFinalize := playlistmaker.FinalizeWithFilenames(&p, baseDir+"/dirfordistance")
+	if errorFinalize == nil {
+		fmt.Println(p.String())
+		isCompleted := p.IsCompleted()
+		if !isCompleted {
+			m.Fatal("Playlist is not Completed !!")
 		}
-		if !found {
-			m.Fatal(itemExpected + " is not in Playlist  !!")
+		for _, itemExpected := range eligibles {
+			found := false
+			for _, itemGot := range p.Entries {
+				found = found || (itemGot.Track.FileName == itemExpected)
+			}
+			if !found {
+				m.Fatal(itemExpected + " is not in Playlist  !!")
+			}
 		}
+	} else {
+
+		playlistmaker.LogInstance().Warn(errorFinalize.Error())
 	}
 }
