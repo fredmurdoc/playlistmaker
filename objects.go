@@ -48,7 +48,7 @@ func (p *Playlist) IsCompleted() bool {
 
 //WriteToFileInDirectory write playlist content in directory
 func (p *Playlist) WriteToFileInDirectory(dirName string) bool {
-	fileName := p.Entries[0].Track.Album + ".m3u"
+	fileName := p.Entries[0].Track.Artist + " - " + p.Entries[0].Track.Album + ".m3u"
 	fileName = strings.Replace(fileName, string(os.PathSeparator), "-", -1)
 	finalFileName := filepath.FromSlash(dirName + "/" + fileName)
 	fd, errCreate := os.Create(finalFileName)
