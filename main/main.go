@@ -15,7 +15,7 @@ func main() {
 
 	flag.StringVar(&root, "directory", ".", "directory to scan")
 	flag.StringVar(&loglevel, "loglevel", "warn", "loglevel : debug, info, warn")
-
+	fmt.Println("version 0.3")
 	flag.Parse()
 
 	switch {
