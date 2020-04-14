@@ -21,6 +21,11 @@ var (
 	DirectoryWithNoPlaylist map[string]bool
 	//DirectoryWithPlaylist scanned directory with at lest one playlist file inside
 	DirectoryWithPlaylist map[string]bool
+	//DirectoryWithAPIFailure scanned directory playlist failed to make
+	DirectoryWithAPIFailure map[string]bool
+	//DirectoryWithPlaylistFailure scanned directory playlist failed to make
+	DirectoryWithPlaylistFailure map[string]bool
+
 	//DistanceDefaultOptionsWithSub options for levenshtein distance calculations
 	DistanceDefaultOptionsWithSub levenshtein.Options = levenshtein.Options{
 		InsCost: 1,
@@ -69,6 +74,8 @@ func FindSubDirectoriesWithNoPlaylist(root string) {
 	DirectoryWithAtLeastMediaFile = make(map[string]bool)
 	DirectoryWithPlaylist = make(map[string]bool)
 	DirectoryWithNoPlaylist = make(map[string]bool)
+	DirectoryWithAPIFailure = make(map[string]bool)
+	DirectoryWithPlaylistFailure = make(map[string]bool)
 	filepath.Walk(root, DirectoriesWithoutPlaylistVisitor)
 }
 
@@ -105,7 +112,7 @@ func GetFirstEligibleTrack(repertoire string) (*Track, error) {
 				return errExtract
 			}
 			if isTrackIsEligibleForAPICall(t) {
-				LogInstance().Debug("is eligible : " + path)
+				LogInstance().Info("is eligible : " + path)
 				eligible = t
 				return nil
 			} else {
@@ -164,7 +171,7 @@ func findCorrespondingEntryInPlaylist(mediaFilename string, p *Playlist) error {
 			findBestMatch(relativeMediaName, entry, mediaFilename)
 		}
 
-		LogInstance().Info("entry founded :  " + entry.String())
+		LogInstance().Debug("entry founded :  " + entry.String())
 	}
 	//control playlist
 	filesInPlaylist := make(map[string]bool)

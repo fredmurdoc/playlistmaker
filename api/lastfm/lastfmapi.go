@@ -30,7 +30,7 @@ type LastFM struct {
 // GetAPIResult retrieve result from api
 func (m *LastFM) GetAPIResult(t *playlistmaker.Track) (result *api.PlaylistAPIResult) {
 	url := fmt.Sprintf(lastfmAPIEndpoint+lastfmAPIAlbumInfoMethod, apiKey, url.QueryEscape(t.Artist), url.QueryEscape(t.Album))
-	playlistmaker.LogInstance().Warn(fmt.Sprintf("GetAPIResult call url %s", url))
+	playlistmaker.LogInstance().Debug(fmt.Sprintf("GetAPIResult call url %s", url))
 	response, err := http.Get(url)
 	if err != nil {
 		log.Fatal(err)

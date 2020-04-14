@@ -10,9 +10,23 @@ import (
 )
 
 func main() {
+
+	var root, loglevel string
+
+	flag.StringVar(&root, "directory", ".", "directory to scan")
+	flag.StringVar(&loglevel, "loglevel", "warn", "loglevel : debug, info, warn")
+
 	flag.Parse()
-	root := flag.Arg(0)
-	playlistmaker.LogInstance().SetLevel(playlistmaker.Debug)
+
+	switch {
+	case loglevel == "debug":
+		playlistmaker.LogInstance().SetLevel(playlistmaker.Debug)
+	case loglevel == "info":
+		playlistmaker.LogInstance().SetLevel(playlistmaker.Info)
+	case loglevel == "warn":
+		playlistmaker.LogInstance().SetLevel(playlistmaker.Warn)
+	}
+
 	playlistmaker.FindSubDirectoriesWithNoPlaylist(root)
 
 	for path, exists := range playlistmaker.DirectoryWithNoPlaylist {
@@ -38,13 +52,46 @@ func main() {
 						}
 					} else {
 						playlistmaker.LogInstance().Warn(errorFinalize.Error())
+						playlistmaker.DirectoryWithPlaylistFailure[path] = true
 					}
 				} else {
 					playlistmaker.LogInstance().Warn(fmt.Sprintf("Found nothing for %s", path))
+					playlistmaker.DirectoryWithAPIFailure[path] = true
 				}
 			}
 		}
 	}
 
-	//lastfm.GetAlbumMetadataFromMedia("my funny Valentine")
+	if len(playlistmaker.DirectoryWithPlaylist) > 0 {
+		fmt.Println("---------------------------------------------")
+		fmt.Println("Directories scanned already with playlist")
+		fmt.Println("---------------------------------------------")
+		for entry, exists := range playlistmaker.DirectoryWithPlaylist {
+			if exists {
+				fmt.Println(entry)
+			}
+		}
+		fmt.Println("")
+	}
+	if len(playlistmaker.DirectoryWithAPIFailure) > 0 {
+		fmt.Println("---------------------------------------------")
+		fmt.Println("Directories scanned but fail to find playlist")
+		fmt.Println("---------------------------------------------")
+		for entry, exists := range playlistmaker.DirectoryWithAPIFailure {
+			if exists {
+				fmt.Println(entry)
+			}
+		}
+		fmt.Println("")
+	}
+	if len(playlistmaker.DirectoryWithPlaylistFailure) > 0 {
+		fmt.Println("-----------------------------------------------")
+		fmt.Println("Directories scanned but fail to create playlist")
+		fmt.Println("-----------------------------------------------")
+		for entry, exists := range playlistmaker.DirectoryWithPlaylistFailure {
+			if exists {
+				fmt.Println(entry)
+			}
+		}
+	}
 }

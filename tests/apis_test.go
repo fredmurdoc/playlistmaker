@@ -30,7 +30,7 @@ func TestLastFmGetAlbumPlaylistFromAPIProviderByNameAndArtist(m *testing.T) {
 	track.Artist = "Michael Jackson"
 	playlist := api.GetAlbumPlaylistFromAPIProviderByNameAndArtist(track, mock)
 	fmt.Printf("%s", playlist.String())
-	expected := 10
+	expected := 11
 	got := len(playlist.Entries)
 	if expected != got {
 		m.Fatalf("expected %d got %d", expected, got)
