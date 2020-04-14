@@ -108,10 +108,11 @@ func GetFirstEligibleTrack(repertoire string) (*Track, error) {
 			}
 			LogInstance().Debug("extract metadata : " + path)
 			errExtract := ExtractMetadataToTrack(f, t)
-			LogInstance().Debug("extract metadata return : ")
-			LogInstance().Debug(errExtract)
+			LogInstance().Debug("extract metadata return : " + t.String())
+
 			if errExtract != nil {
 				LogInstance().Debug("error on : " + path)
+				LogInstance().Debug(errExtract)
 				return errExtract
 			}
 			if isTrackIsEligibleForAPICall(t) {
