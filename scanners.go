@@ -140,6 +140,20 @@ func FinalizeWithFilenames(p *Playlist, directory string) error {
 		LogInstance().Info("findCorrespondingEntryInPlaylist for " + pathMedia)
 		err = findCorrespondingEntryInPlaylist(pathMedia, p)
 	}
+	//control playlist : scan all entries and theirs files if there is more than 1 occurence we've got a problem
+	filesInPlaylist := make(map[string]bool)
+	for _, entry := range p.Entries {
+		currentFilename := entry.Track.FileName
+		LogInstance().Debug(fmt.Sprintf("control %s", entry.Track.String()))
+		if len(currentFilename) > 0 {
+			if _, exists := filesInPlaylist[currentFilename]; exists {
+				LogInstance().Info(fmt.Sprintf("%s is already in control list", currentFilename))
+				return errors.New("Playlist with multiple entries with same file")
+			}
+			LogInstance().Debug(fmt.Sprintf("append %s to control list", currentFilename))
+			filesInPlaylist[currentFilename] = true
+		}
+	}
 	return err
 }
 
@@ -172,19 +186,6 @@ func findCorrespondingEntryInPlaylist(mediaFilename string, p *Playlist) error {
 		}
 
 		LogInstance().Debug("entry founded :  " + entry.String())
-	}
-	//control playlist
-	filesInPlaylist := make(map[string]bool)
-	for _, entry := range p.Entries {
-		currentFilename := entry.Track.FileName
-		if len(currentFilename) > 0 {
-			if _, exists := filesInPlaylist[currentFilename]; exists {
-				LogInstance().Warn(fmt.Sprintf("%s is already in control list", currentFilename))
-				return errors.New("Playlist with multiple entries with same file")
-			}
-			LogInstance().Debug(fmt.Sprintf("append %s to control list", currentFilename))
-			filesInPlaylist[currentFilename] = true
-		}
 	}
 
 	return nil
