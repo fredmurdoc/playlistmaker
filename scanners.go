@@ -25,6 +25,8 @@ var (
 	DirectoryWithAPIFailure map[string]bool
 	//DirectoryWithPlaylistFailure scanned directory playlist failed to make
 	DirectoryWithPlaylistFailure map[string]bool
+	//DirectoryWithPlaylistSuccess
+	DirectoryWithPlaylistSuccess map[string]bool
 
 	//DistanceDefaultOptionsWithSub options for levenshtein distance calculations
 	DistanceDefaultOptionsWithSub levenshtein.Options = levenshtein.Options{
@@ -76,6 +78,7 @@ func FindSubDirectoriesWithNoPlaylist(root string) {
 	DirectoryWithNoPlaylist = make(map[string]bool)
 	DirectoryWithAPIFailure = make(map[string]bool)
 	DirectoryWithPlaylistFailure = make(map[string]bool)
+	DirectoryWithPlaylistSuccess = make(map[string]bool)
 	filepath.Walk(root, DirectoriesWithoutPlaylistVisitor)
 }
 

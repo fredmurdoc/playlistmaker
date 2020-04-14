@@ -49,6 +49,7 @@ func main() {
 						isWrote := p.WriteToFileInDirectory(path)
 						if isWrote {
 							playlistmaker.LogInstance().Warn(fmt.Sprintf("Playlist created for %s", path))
+							playlistmaker.DirectoryWithPlaylistSuccess[path] = true
 						}
 					} else {
 						playlistmaker.LogInstance().Warn(errorFinalize.Error())
@@ -62,36 +63,23 @@ func main() {
 		}
 	}
 
-	if len(playlistmaker.DirectoryWithPlaylist) > 0 {
-		fmt.Println("---------------------------------------------")
-		fmt.Println("Directories scanned already with playlist")
-		fmt.Println("---------------------------------------------")
-		for entry, exists := range playlistmaker.DirectoryWithPlaylist {
+	report(playlistmaker.DirectoryWithPlaylist, "Directories scanned already with playlist")
+	report(playlistmaker.DirectoryWithAPIFailure, "Directories scanned but fail to find playlist")
+	report(playlistmaker.DirectoryWithPlaylistFailure, "Directories scanned but fail to create playlist")
+	report(playlistmaker.DirectoryWithPlaylistSuccess, "Directories scanned with new playlist")
+
+}
+
+func report(list map[string]bool, message string) {
+	if len(list) > 0 {
+		fmt.Println("-----------------------------------------------")
+		fmt.Println(message)
+		fmt.Println("-----------------------------------------------")
+		for entry, exists := range list {
 			if exists {
 				fmt.Println(entry)
 			}
 		}
 		fmt.Println("")
-	}
-	if len(playlistmaker.DirectoryWithAPIFailure) > 0 {
-		fmt.Println("---------------------------------------------")
-		fmt.Println("Directories scanned but fail to find playlist")
-		fmt.Println("---------------------------------------------")
-		for entry, exists := range playlistmaker.DirectoryWithAPIFailure {
-			if exists {
-				fmt.Println(entry)
-			}
-		}
-		fmt.Println("")
-	}
-	if len(playlistmaker.DirectoryWithPlaylistFailure) > 0 {
-		fmt.Println("-----------------------------------------------")
-		fmt.Println("Directories scanned but fail to create playlist")
-		fmt.Println("-----------------------------------------------")
-		for entry, exists := range playlistmaker.DirectoryWithPlaylistFailure {
-			if exists {
-				fmt.Println(entry)
-			}
-		}
 	}
 }
